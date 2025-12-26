@@ -1,0 +1,49 @@
+﻿# Build output
+bin/
+obj/
+out/
+
+# Visual Studio temporary files
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider IDE files (if used)
+.idea/
+
+# NuGet packages
+*.nupkg
+*.snupkg
+packages/
+
+# ASP.NET Core files
+appsettings.*.json
+appsettings.json
+*.db
+*.log
+
+# MacOS / Linux files
+.DS_Store
+Thumbs.db
+
+# Node / NPM (if using Angular or frontend)
+node_modules/
+dist/
+wwwroot/
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# Test results
+TestResults/
+*.trx
+
+# Dotnet global tools
+.dotnet/
+
+# Entity Framework migrations (optional)
+Migrations/

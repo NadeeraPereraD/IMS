@@ -21,5 +21,25 @@ namespace IMS.BAL.Services
         {
             return await _repository.GetAllInventoryAsync();
         }
+
+        public async Task<List<InventoryDetail>> GetInventoryDetailAsync()
+        {
+            return await _repository.GetInventoryDetailAsync();
+        }
+
+        public async Task<List<Inventory>> GetAvailableInventoryAsync()
+        {
+            return await _repository.GetAvailableInventoryAsync();
+        }
+
+        public async Task<Inventory> GetInventoryByProductNameAsync(string productName)
+        {
+            return await _repository.GetInventoryByProductNameAsync(productName);
+        }
+
+        public async Task<List<Inventory>> GetAllInventoryVariationsByProductNameAsync(string productName)
+        {
+            return await _repository.GetAllInventoryVariationsByProductNameAsync(productName);
+        }
     }
 }

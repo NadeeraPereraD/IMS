@@ -9,11 +9,13 @@ namespace IMS.WEB.Controllers
     {
         private readonly SalesService _salesService;
         private readonly ReportService _reportService;
+        private readonly InventoryService _inventoryService;
 
-        public SalesController(SalesService salesService, ReportService reportService)
+        public SalesController(SalesService salesService, ReportService reportService, InventoryService inventoryService)
         {
             _salesService = salesService;
             _reportService = reportService;
+            _inventoryService = inventoryService;
         }
 
         // GET: Sales
@@ -24,13 +26,17 @@ namespace IMS.WEB.Controllers
         }
 
         // GET: Sales/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
             var model = new Sales
             {
                 SalesDate = DateTime.Now,
                 InvNo = _salesService.GenerateInvoiceNumber()
             };
+
+            // Load available inventory
+            ViewBag.Inventory = await _inventoryService.GetAvailableInventoryAsync();
+
             return View(model);
         }
 
@@ -44,19 +50,34 @@ namespace IMS.WEB.Controllers
                     string.IsNullOrWhiteSpace(model.SalesType))
                 {
                     TempData["Error"] = "Please fill in all required fields.";
+                    ViewBag.Inventory = await _inventoryService.GetAvailableInventoryAsync();
                     return View("Create", model);
                 }
 
                 if (model.Amount <= 0)
                 {
                     TempData["Error"] = "Amount cannot be zero while saving the sales invoice.";
+                    ViewBag.Inventory = await _inventoryService.GetAvailableInventoryAsync();
                     return View("Create", model);
                 }
 
                 if (model.SalesLines == null || !model.SalesLines.Any())
                 {
                     TempData["Error"] = "Please add at least one product line.";
+                    ViewBag.Inventory = await _inventoryService.GetAvailableInventoryAsync();
                     return View("Create", model);
+                }
+
+                // Validate inventory availability
+                foreach (var line in model.SalesLines)
+                {
+                    var inventory = await _inventoryService.GetInventoryByProductNameAsync(line.ProductName);
+                    if (inventory == null || inventory.TotalQuantity < line.Quantity)
+                    {
+                        TempData["Error"] = $"Insufficient inventory for product: {line.ProductName}. Available: {inventory?.TotalQuantity ?? 0}";
+                        ViewBag.Inventory = await _inventoryService.GetAvailableInventoryAsync();
+                        return View("Create", model);
+                    }
                 }
 
                 var salesId = await _salesService.SaveInvoiceAsync(model);
@@ -70,6 +91,7 @@ namespace IMS.WEB.Controllers
             catch (Exception ex)
             {
                 TempData["Error"] = $"Error saving invoice: {ex.Message}";
+                ViewBag.Inventory = await _inventoryService.GetAvailableInventoryAsync();
                 return View("Create", model);
             }
         }
@@ -93,6 +115,8 @@ namespace IMS.WEB.Controllers
             {
                 return NotFound();
             }
+
+            ViewBag.Inventory = await _inventoryService.GetAllInventoryAsync();
             return View("Create", invoice);
         }
 
@@ -116,6 +140,25 @@ namespace IMS.WEB.Controllers
                 TempData["Error"] = $"Error generating PDF: {ex.Message}";
                 return RedirectToAction("View", new { id });
             }
+        }
+
+        // API endpoint to get inventory item details
+        [HttpGet]
+        public async Task<IActionResult> GetInventoryItem(string productName)
+        {
+            var inventory = await _inventoryService.GetInventoryByProductNameAsync(productName);
+            if (inventory == null)
+            {
+                return Json(new { success = false, message = "Product not found" });
+            }
+
+            return Json(new
+            {
+                success = true,
+                productName = inventory.ProductName,
+                availableQuantity = inventory.TotalQuantity,
+                sellingPrice = inventory.LastSellingPrice ?? 0
+            });
         }
     }
 }

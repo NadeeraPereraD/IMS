@@ -6,9 +6,14 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="bi bi-box-seam"></i> Inventory Summary</h2>
-        <button class="btn btn-success" onclick="window.print()">
-            <i class="bi bi-printer"></i> Print Report
-        </button>
+        @* <div>
+            <a asp-action="Detail" class="btn btn-info">
+                <i class="bi bi-list-ul"></i> Detailed View
+            </a>
+            <button class="btn btn-success" onclick="window.print()">
+                <i class="bi bi-printer"></i> Print Report
+            </button>
+        </div> *@
     </div>
 
     <div class="card shadow-sm">
@@ -20,8 +25,9 @@
                             <th>#</th>
                             <th>Product Name</th>
                             <th class="text-center">Total Quantity</th>
-                            <th class="text-end">Last Unit Price</th>
-                            <th class="text-end">Last Selling Price</th>
+                            <th class="text-end">Unit Price</th>
+                            <th class="text-end">Selling Price</th>
+                            @* <th>GRN References</th> *@
                             <th>Last Updated</th>
                         </tr>
                     </thead>
@@ -29,29 +35,67 @@
                         @if (Model != null && Model.Any())
                         {
                             int rowNum = 1;
+                            string currentProduct = "";
+                            int productRowspan = 0;
+                            
                             foreach (var item in Model)
                             {
+                                bool isNewProduct = item.ProductName != currentProduct;
+                                if (isNewProduct)
+                                {
+                                    currentProduct = item.ProductName;
+                                    productRowspan = Model.Count(x => x.ProductName == item.ProductName);
+                                }
+                                
                                 <tr class="@(item.TotalQuantity <= 0 ? "table-danger" : item.TotalQuantity < 10 ? "table-warning" : "")">
                                     <td>@rowNum</td>
-                                    <td>
-                                        <strong>@item.ProductName</strong>
-                                        @if (item.TotalQuantity <= 0)
-                                        {
-                                            <span class="badge bg-danger ms-2">Out of Stock</span>
-                                        }
-                                        else if (item.TotalQuantity < 10)
-                                        {
-                                            <span class="badge bg-warning text-dark ms-2">Low Stock</span>
-                                        }
-                                    </td>
+                                    
+                                    @if (isNewProduct)
+                                    {
+                                        <td rowspan="@productRowspan">
+                                            <strong>@item.ProductName</strong>
+                                            @{
+                                                var totalQty = Model.Where(x => x.ProductName == item.ProductName).Sum(x => x.TotalQuantity);
+                                            }
+                                            <br />
+                                            <small class="text-muted">Total: @totalQty units</small>
+                                            @if (totalQty <= 0)
+                                            {
+                                                <br /><span class="badge bg-danger">Out of Stock</span>
+                                            }
+                                            else if (totalQty < 10)
+                                            {
+                                                <br /><span class="badge bg-warning text-dark">Low Stock</span>
+                                            }
+                                        </td>
+                                    }
+                                    
                                     <td class="text-center">
                                         <span class="badge @(item.TotalQuantity <= 0 ? "bg-danger" : item.TotalQuantity < 10 ? "bg-warning text-dark" : "bg-success")">
                                             @item.TotalQuantity
                                         </span>
                                     </td>
                                     <td class="text-end">@(item.LastUnitPrice?.ToString("N2") ?? "-")</td>
-                                    <td class="text-end">@(item.LastSellingPrice?.ToString("N2") ?? "-")</td>
-                                    <td>@item.LastUpdated.ToString("dd MMM yyyy HH:mm")</td>
+                                    <td class="text-end">
+                                        <strong>@(item.LastSellingPrice?.ToString("N2") ?? "-")</strong>
+                                    </td>
+                                    @* <td>
+                                        <small class="text-muted">
+                                            @if (!string.IsNullOrEmpty(item.GRNNumbers))
+                                            {
+                                                @item.GRNNumbers
+                                                @if (item.GRNCount > 1)
+                                                {
+                                                    <span class="badge bg-info text-dark ms-1">@item.GRNCount GRNs</span>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <text>-</text>
+                                            }
+                                        </small>
+                                    </td> *@
+                                    <td>@item.LastUpdated.ToString("dd MMM yyyy")</td>
                                 </tr>
                                 rowNum++;
                             }
@@ -59,7 +103,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="6" class="text-center text-muted">
+                                <td colspan="7" class="text-center text-muted">
                                     <i class="bi bi-inbox" style="font-size: 2rem;"></i>
                                     <p class="mt-2">No inventory items found</p>
                                 </td>
@@ -73,31 +117,50 @@
 
     @if (Model != null && Model.Any())
     {
+        var uniqueProducts = Model.Select(x => x.ProductName).Distinct().ToList();
+        var totalProducts = uniqueProducts.Count;
+        var totalQuantity = Model.Sum(x => x.TotalQuantity);
+        var outOfStock = uniqueProducts.Count(product => Model.Where(x => x.ProductName == product).Sum(x => x.TotalQuantity) <= 0);
+        var lowStock = uniqueProducts.Count(product => {
+            var qty = Model.Where(x => x.ProductName == product).Sum(x => x.TotalQuantity);
+            return qty > 0 && qty < 10;
+        });
+        var inStock = totalProducts - outOfStock - lowStock;
+        
         <div class="row mt-4">
-            <div class="col-md-4">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="bi bi-box-seam"></i> Total Products</h5>
+                        <h2>@totalProducts</h2>
+                        <p class="mb-0">Unique Items</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
                 <div class="card text-white bg-success shadow-sm">
                     <div class="card-body">
                         <h5 class="card-title"><i class="bi bi-check-circle"></i> In Stock</h5>
-                        <h2>@Model.Count(x => x.TotalQuantity >= 10)</h2>
-                        <p class="mb-0">Products</p>
+                        <h2>@inStock</h2>
+                        <p class="mb-0">Products Available</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card text-white bg-warning shadow-sm">
                     <div class="card-body">
                         <h5 class="card-title"><i class="bi bi-exclamation-triangle"></i> Low Stock</h5>
-                        <h2>@Model.Count(x => x.TotalQuantity > 0 && x.TotalQuantity < 10)</h2>
-                        <p class="mb-0">Products</p>
+                        <h2>@lowStock</h2>
+                        <p class="mb-0">Products (&lt; 10 units)</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card text-white bg-danger shadow-sm">
                     <div class="card-body">
                         <h5 class="card-title"><i class="bi bi-x-circle"></i> Out of Stock</h5>
-                        <h2>@Model.Count(x => x.TotalQuantity <= 0)</h2>
-                        <p class="mb-0">Products</p>
+                        <h2>@outOfStock</h2>
+                        <p class="mb-0">Products Depleted</p>
                     </div>
                 </div>
             </div>

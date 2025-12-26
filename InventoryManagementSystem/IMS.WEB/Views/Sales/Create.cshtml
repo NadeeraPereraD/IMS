@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = Model.SalesID == 0 ? "Create Sales Invoice" : "Edit Sales Invoice";
+    var inventory = ViewBag.Inventory as List<IMS.DAL.Models.Inventory> ?? new List<IMS.DAL.Models.Inventory>();
 }
 
 <div class="container-fluid">
@@ -85,8 +86,17 @@
             <div class="card-body">
                 <div class="row mb-3 g-2">
                     <div class="col-md-4">
-                        <input type="text" id="productName" class="form-control"
-                               placeholder="Product Name" tabindex="6" />
+                        <select id="productDropdown" class="form-select" tabindex="6">
+                            <option value="">-- Select Product --</option>
+                            @foreach (var item in inventory)
+                            {
+                                <option value="@item.ProductName" 
+                                        data-qty="@item.TotalQuantity" 
+                                        data-price="@item.LastSellingPrice">
+                                    @item.ProductName (Available: @item.TotalQuantity)
+                                </option>
+                            }
+                        </select>
                     </div>
                     <div class="col-md-2">
                         <input type="number" id="quantity" class="form-control"
@@ -94,11 +104,12 @@
                     </div>
                     <div class="col-md-3">
                         <input type="number" id="unitPrice" class="form-control"
-                               placeholder="Unit Price" step="0.01" min="0.01" tabindex="8" />
+                               placeholder="Unit Price" step="0.01" min="0.01" tabindex="-1" 
+                               style="background-color: #e9ecef;" />
                     </div>
                     <div class="col-md-3">
                         <button type="button" class="btn btn-success w-100"
-                                onclick="addProductLine()" tabindex="9">
+                                onclick="addProductLine()" tabindex="8">
                             <i class="bi bi-plus-circle"></i> Add Product
                         </button>
                     </div>
@@ -126,7 +137,7 @@
         <div id="hiddenLines"></div>
 
         <div class="mb-3">
-            <button type="submit" class="btn btn-primary btn-lg" tabindex="10">
+            <button type="submit" class="btn btn-primary btn-lg" tabindex="9">
                 <i class="bi bi-save"></i> @(Model.SalesID == 0 ? "Save Invoice" : "Update Invoice")
             </button>
             <a asp-action="Index" class="btn btn-secondary btn-lg">
@@ -141,18 +152,19 @@
         let lineNumber = 1;
         let totalAmount = 0;
         let productLinesArray = [];
+        let inventoryData = @Html.Raw(Json.Serialize(inventory));
 
         document.addEventListener('DOMContentLoaded', function () {
-            const inputs = document.querySelectorAll('input:not([readonly]):not([type="hidden"]), select, textarea');
+            const inputs = document.querySelectorAll('input:not([readonly]):not([type="hidden"]), select');
 
             inputs.forEach((input, index) => {
                 input.addEventListener('keydown', function (e) {
                     if (e.key === 'Enter') {
                         e.preventDefault();
 
-                        if (input.id === 'unitPrice') {
+                        if (input.id === 'quantity') {
                             addProductLine();
-                            document.getElementById('productName').focus();
+                            document.getElementById('productDropdown').focus();
                             return;
                         }
 
@@ -163,15 +175,61 @@
                     }
                 });
             });
+
+            // Product dropdown change event
+            document.getElementById('productDropdown').addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const price = selectedOption.getAttribute('data-price');
+                
+                if (price && price !== 'null') {
+                    document.getElementById('unitPrice').value = parseFloat(price).toFixed(2);
+                } else {
+                    document.getElementById('unitPrice').value = '';
+                }
+                
+                // Focus on quantity field
+                document.getElementById('quantity').focus();
+            });
         });
 
         function addProductLine() {
-            const productName = document.getElementById('productName').value.trim();
+            const productDropdown = document.getElementById('productDropdown');
+            const productName = productDropdown.value.trim();
             const quantity = parseInt(document.getElementById('quantity').value);
             const unitPrice = parseFloat(document.getElementById('unitPrice').value);
 
-            if (!productName || !quantity || !unitPrice) {
-                alert('Product Name, Quantity, and Unit Price must be entered.');
+            if (!productName) {
+                alert('Please select a product.');
+                productDropdown.focus();
+                return;
+            }
+
+            if (!quantity || quantity <= 0) {
+                alert('Please enter a valid quantity.');
+                document.getElementById('quantity').focus();
+                return;
+            }
+
+            if (!unitPrice || unitPrice <= 0) {
+                alert('Unit price must be greater than zero.');
+                return;
+            }
+
+            // Get available quantity from dropdown
+            const selectedOption = productDropdown.options[productDropdown.selectedIndex];
+            const availableQty = parseInt(selectedOption.getAttribute('data-qty'));
+
+            // Check if product already exists in the list
+            const existingProductIndex = productLinesArray.findIndex(p => p.productName === productName);
+            let totalRequestedQty = quantity;
+
+            if (existingProductIndex !== -1) {
+                totalRequestedQty += productLinesArray[existingProductIndex].quantity;
+            }
+
+            // Validate against available inventory
+            if (totalRequestedQty > availableQty) {
+                alert(`Insufficient inventory for ${productName}. Available: ${availableQty}, Requested: ${totalRequestedQty}`);
                 return;
             }
 
@@ -188,14 +246,14 @@
             totalAmount += total;
             document.getElementById('totalAmount').value = totalAmount.toFixed(2);
 
-            document.getElementById('productName').value = '';
+            productDropdown.selectedIndex = 0;
             document.getElementById('quantity').value = '';
             document.getElementById('unitPrice').value = '';
 
             rerenderTable();
             updateHiddenFields();
 
-            document.getElementById('productName').focus();
+            productDropdown.focus();
         }
 
         function deleteLine(index) {
@@ -283,4 +341,3 @@
         </script>
     }
 }
-

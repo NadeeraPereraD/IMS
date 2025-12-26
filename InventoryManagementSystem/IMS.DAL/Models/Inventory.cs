@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IMS.DAL.Models
 {
-    internal class Inventory
+    public class Inventory
     {
         public int InventoryID { get; set; }
         public string ProductName { get; set; }

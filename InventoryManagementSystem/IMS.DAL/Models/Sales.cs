@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace IMS.DAL.Models
 {
-    internal class Sales
+    public class Sales
     {
         public int SalesID { get; set; }
 

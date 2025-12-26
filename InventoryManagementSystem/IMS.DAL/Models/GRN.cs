@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace IMS.DAL.Models
 {
-    internal class GRN
+    public class GRN
     {
         public int GRNID { get; set; }
 

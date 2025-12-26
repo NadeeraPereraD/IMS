@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace IMS.DAL.Repositories
 {
-    internal class GRNRepository
+    public class GRNRepository
     {
         private readonly string _connectionString;
 

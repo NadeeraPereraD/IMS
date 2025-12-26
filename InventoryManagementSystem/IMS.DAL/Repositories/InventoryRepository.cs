@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace IMS.DAL.Repositories
 {
-    internal class InventoryRepository
+    public class InventoryRepository
     {
         private readonly string _connectionString;
 

@@ -1,0 +1,109 @@
+﻿@model IMS.DAL.Models.GRN
+@{
+    ViewData["Title"] = "View GRN";
+}
+
+<div class="container-fluid">
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow">
+        <div class="card-body" id="grn-content">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h3 class="text-primary">ABC Company</h3>
+                    <p class="mb-1"><strong>Vendor Name:</strong> @Model.VendorName</p>
+                    <p class="mb-1"><strong>Address:</strong> @Model.Address</p>
+                    <p class="mb-1"><strong>Phone:</strong> @Model.Tel</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <h4 class="text-success">Goods Received Note</h4>
+                    <div class="border border-success p-3 d-inline-block rounded">
+                        <p class="mb-1"><strong>GRN No:</strong> @Model.GRNNo</p>
+                        <p class="mb-1"><strong>Date:</strong> @Model.GRNDate.ToString("dd MMM yyyy")</p>
+                        <p class="mb-0"><strong>Amount:</strong> <span class="text-success">@Model.Amount.ToString("N2")</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th width="50">#</th>
+                            <th>Description</th>
+                            <th width="80">Qty</th>
+                            <th width="120">Unit Price</th>
+                            <th width="120">Selling Price</th>
+                            <th width="120">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.GRNLines != null && Model.GRNLines.Any())
+                        {
+                            int lineNo = 1;
+                            foreach (var line in Model.GRNLines)
+                            {
+                                <tr>
+                                    <td class="text-center">@lineNo</td>
+                                    <td>@line.ProductName</td>
+                                    <td class="text-center">@line.Quantity</td>
+                                    <td class="text-end">@line.UnitPrice.ToString("N2")</td>
+                                    <td class="text-end">@line.SellingPrice.ToString("N2")</td>
+                                    <td class="text-end">@line.Total.ToString("N2")</td>
+                                </tr>
+                                lineNo++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center">No product lines found</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-success">
+                            <td colspan="5" class="text-end"><strong>Total Amount:</strong></td>
+                            <td class="text-end"><strong>@Model.Amount.ToString("N2")</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4 no-print">
+        <a asp-action="Index" class="btn btn-secondary btn-lg">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+        <a asp-action="Edit" asp-route-id="@Model.GRNID" class="btn btn-warning btn-lg">
+            <i class="bi bi-pencil"></i> Edit
+        </a>
+        <a asp-action="PrintPdf" asp-route-id="@Model.GRNID" class="btn btn-danger btn-lg" target="_blank">
+            <i class="bi bi-file-pdf"></i> Export to PDF
+        </a>
+    </div>
+</div>
+
+<style>
+    @@media print {
+        .no-print {
+            display: none !important;
+        }
+
+        body {
+            background: white;
+        }
+
+        .card {
+            border: none;
+            box-shadow: none;
+        }
+    }
+</style>

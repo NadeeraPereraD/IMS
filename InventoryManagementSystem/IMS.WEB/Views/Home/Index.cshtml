@@ -1,8 +1,104 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container-fluid">
+    <h2><i class="bi bi-speedometer2"></i> Dashboard</h2>
+    <p class="text-muted">Welcome to the Inventory Management System</p>
+
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-0">Sales Invoices</h5>
+                            <p class="mb-0 mt-2">Manage customer sales</p>
+                        </div>
+                        <div>
+                            <i class="bi bi-receipt" style="font-size: 3rem;"></i>
+                        </div>
+                    </div>
+                    <a asp-controller="Sales" asp-action="Index" class="btn btn-light mt-3">
+                        <i class="bi bi-arrow-right"></i> View All
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card text-white bg-success shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-0">Goods Received</h5>
+                            <p class="mb-0 mt-2">Manage vendor purchases</p>
+                        </div>
+                        <div>
+                            <i class="bi bi-truck" style="font-size: 3rem;"></i>
+                        </div>
+                    </div>
+                    <a asp-controller="GRN" asp-action="Index" class="btn btn-light mt-3">
+                        <i class="bi bi-arrow-right"></i> View All
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card text-white bg-info shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-0">Inventory</h5>
+                            <p class="mb-0 mt-2">Track stock levels</p>
+                        </div>
+                        <div>
+                            <i class="bi bi-box-seam" style="font-size: 3rem;"></i>
+                        </div>
+                    </div>
+                    <a asp-controller="Inventory" asp-action="Index" class="btn btn-light mt-3">
+                        <i class="bi bi-arrow-right"></i> View All
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <a asp-controller="Sales" asp-action="Create" class="list-group-item list-group-item-action">
+                            <i class="bi bi-plus-circle text-primary"></i> Create New Sales Invoice
+                        </a>
+                        <a asp-controller="GRN" asp-action="Create" class="list-group-item list-group-item-action">
+                            <i class="bi bi-plus-circle text-success"></i> Create New GRN
+                        </a>
+                        <a asp-controller="Inventory" asp-action="Index" class="list-group-item list-group-item-action">
+                            <i class="bi bi-eye text-info"></i> View Inventory Status
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> System Information</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Version:</strong> 1.0.0</p>
+                    <p><strong>System:</strong> Inventory Management System</p>
+                    <p><strong>Technology:</strong> ASP.NET Core 7.0, Dapper, SQL Server</p>
+                    <p class="mb-0"><strong>Date:</strong> @DateTime.Now.ToString("dd MMM yyyy")</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AspNetCore.Reporting" Version="2.1.0" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\IMS.BAL\IMS.BAL.csproj" />
     <ProjectReference Include="..\IMS.DAL\IMS.DAL.csproj" />
   </ItemGroup>
